@@ -3,7 +3,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
 
-// Maybe not the best naming for the main class, but i guess it will do. Thankfully don't have to type it alot.
+// Maybe not the best naming for the main class, but i guess it will do. Thankfully I don't have to type it alot.
 class Oblig1_ThomasWaaler_Flyplassen
 {
     int maxQueueSize = 10;    // Max amount of planes in each queue allowed
@@ -36,10 +36,10 @@ class Oblig1_ThomasWaaler_Flyplassen
         // Add an empty line before logging
         System.out.println("");
 
-        // Check that the probability isn't greater 1
+        // Check that the probability isn't greater than 1
         float collectedP = P_planeArrivals + P_planeDepartures;
         if (collectedP > 1.0) {
-            System.out.println("ERROR: The collected probability is larger than 1. --> " + collectedP);
+            System.out.println("ERROR: The total probability is larger than 1, " + collectedP);
             System.exit(1);
         }
 
@@ -51,7 +51,7 @@ class Oblig1_ThomasWaaler_Flyplassen
     private class Plane
     {
         public Plane(int name, int arrival) {
-            this.name = name;
+            this.name = name;       // The plane number to know which one it is during logging
             this.arrival = arrival;
         }
         public int getWaitTime(int time) { return time - arrival; }
@@ -63,14 +63,14 @@ class Oblig1_ThomasWaaler_Flyplassen
     public void simulate()
     {
         // Variables used for tracking what happened during the simulation
-        int planeNumber        = 0;
-        int processedCount     = 0;
+        int planeNumber        = 0; // Keep track of what the next plane number will be
+        int processedCount     = 0; // How many planes we have processed, including those declined
         int planeLandCount     = 0;
         int planeTakeoffCount  = 0;
         int planeDeclinedCount = 0;
-        int landingWaitTime    = 0;
-        int runwayWaitTime     = 0;
-        int emptyAirportTime   = 0;
+        int landingWaitTime    = 0; // The total time planes have had to wait for landing
+        int runwayWaitTime     = 0; // The total time planes have had to wait for taking off
+        int emptyAirportTime   = 0; // How many timesteps the airport have been empty
 
         // Creating the two plane queues
         Queue<Plane> runwayQ = new LinkedList<Plane>();
@@ -83,33 +83,35 @@ class Oblig1_ThomasWaaler_Flyplassen
         int newPlanesCount;
         for (int time = 0; time < maxTimesteps; time++)
         {
-            // How many planes will arrive during this timestep?
+            // How many planes will want to land during this timestep?
             newPlanesCount = getPoissonRandom(P_planeArrivals);
             processedCount += newPlanesCount;
             for (int i = 0; i < newPlanesCount; i++) {
                 if (landingQ.size() == maxQueueSize)
                     planeDeclinedCount++;
-                else {
+                else
+                {
                     loggingQueue.add("Plane " + planeNumber + " ready for landing.");
-                    landingQ.add( new Plane(planeNumber, time) );
+                    landingQ.add(new Plane(planeNumber, time));
                     planeNumber++;
                 }
             }
 
-            // How many planes will take off during this timestep?
+            // How many planes will want to take off during this timestep?
             newPlanesCount = getPoissonRandom(P_planeDepartures);
             processedCount += newPlanesCount;
             for (int i = 0; i < newPlanesCount; i++) {
                 if (runwayQ.size() == maxQueueSize)
                     planeDeclinedCount++;
-                else {
+                else
+                {
                     loggingQueue.add("Plane " + planeNumber + " ready for departure.");
-                    runwayQ.add( new Plane(planeNumber, time) );
+                    runwayQ.add(new Plane(planeNumber, time));
                     planeNumber++;
                 }
             }
 
-            // Check if there are any planes in the queue, and prioritize landing queue.
+            // Check if there are any planes in the queue, and prioritize planes in the landing queue.
             if (!landingQ.isEmpty())
             {
                 Plane p = landingQ.remove();
@@ -160,21 +162,20 @@ class Oblig1_ThomasWaaler_Flyplassen
         System.out.println("Planes declined             : " + planeDeclinedCount);
         System.out.println("Planes ready for landing    : " + landingQ.size());
         System.out.println("Planes ready to take off    : " + runwayQ.size());
-        System.out.println("Procent available time      : " + (int)((float)emptyAirportTime / (float)maxTimesteps * 100));
-        if (planeLandCount > 0)
-        {
-            System.out.println("Average wait time landing   : " +
-                               (float)landingWaitTime / (float)planeLandCount +
-                               " timesteps");
+        System.out.println("Percent available time      : " + (int)((float)emptyAirportTime / (float)maxTimesteps * 100));
+        // Protect from division by 0
+        if (planeLandCount > 0) {
+            System.out.println(
+                    "Average wait time landing   : " + (float) landingWaitTime / (float) planeLandCount + " timesteps");
         }
-        if (planeTakeoffCount > 0)
-        {
-            System.out.println("Average wait time on runway : " +
-                               (float)runwayWaitTime / (float)planeTakeoffCount +
-                               " timesteps");
+        // Protect from division by 0
+        if (planeTakeoffCount > 0) {
+            System.out.println("Average wait time on runway : " + (float) runwayWaitTime / (float) planeTakeoffCount
+                    + " timesteps");
         }
     }
 
+    // Random drawing with poisson distribution, implementation from task text
     private int getPoissonRandom(double mean)
     {
         Random r = new Random();
