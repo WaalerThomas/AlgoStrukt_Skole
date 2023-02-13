@@ -1,10 +1,12 @@
+package AlgoStrukt_Skole.thomaswaaler.oblig1;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
 
 // Maybe not the best naming for the main class, but i guess it will do. Thankfully I don't have to type it alot.
-class Oblig1_ThomasWaaler_Flyplassen
+class Flyplassen
 {
     int maxQueueSize = 10;    // Max amount of planes in each queue allowed
     int maxTimesteps;         // Max timesteps the simulations will run
@@ -12,7 +14,7 @@ class Oblig1_ThomasWaaler_Flyplassen
     float P_planeArrivals;    // Probability that a plane will arrive
     float P_planeDepartures;  // Probability that a plane will arrive
 
-    public Oblig1_ThomasWaaler_Flyplassen()
+    public Flyplassen()
     {
         // Read in data from the user for simulation parameters
         Scanner s = new Scanner(System.in);
@@ -190,7 +192,7 @@ class Oblig1_ThomasWaaler_Flyplassen
     }
 
     public static void main(String[] args) {
-        Oblig1_ThomasWaaler_Flyplassen airport = new Oblig1_ThomasWaaler_Flyplassen();
+        Flyplassen airport = new Flyplassen();
         airport.simulate();
     }
 }
