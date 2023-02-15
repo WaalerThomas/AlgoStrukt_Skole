@@ -15,6 +15,7 @@ public class SpringerProblemet
     public SpringerProblemet()
     {
         Scanner s = new Scanner(System.in);
+        int startX, startY, result;
         stepCount = 0;
 
         System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
@@ -28,10 +29,10 @@ public class SpringerProblemet
         board = new int[n][n];
 
         System.out.print("Start position X? (1 to " + n + ") ");
-        int startX = s.nextInt();
+        startX = s.nextInt();
 
         System.out.print("Start position Y? (1 to " + n + ") ");
-        int startY = s.nextInt();
+        startY = s.nextInt();
 
         // Check to see if user has given a position out of range
         if (startX <= 0 || startX > n || startY <= 0 || startY > n) {
@@ -44,7 +45,7 @@ public class SpringerProblemet
         System.out.println("\t0. Recursive");
         System.out.println("\t1. Warnsdorf");
         System.out.print("Style> ");
-        int result = s.nextInt();
+        result = s.nextInt();
         System.out.println("");
 
         switch (result)
@@ -70,7 +71,13 @@ public class SpringerProblemet
                 // Subtract 1 from x and y since the code uses position coordinates between 0 and n-1
                 if (warnsdorf(startX - 1, startY - 1)) {
                     System.out.println("Found a solution!");
-                    printBoard();
+
+                    if (n <= 20)
+                        printBoard();
+                    else {
+                        // TODO: Print out to a file instead?
+                        System.out.println("Board is too big to be printed in the terminal");
+                    }
                 } else
                     System.out.println("Couldn't find a solution!");
             } break;
@@ -143,9 +150,9 @@ public class SpringerProblemet
         if (stepCount == n * n)
             return true;
 
-        int nextCell[] = { 0, 0, 9 }; // x, y, availableSteps
-
-        // Go through every 8 possible moves and find the cell with the least next available cells
+        // Populate a list with the amount of available cells it has. Index into that array
+        // corresponds with the index into dX and dY arrays
+        int cellsAvailableCount[] = new int[8];
         for (int i = 0; i < 8; i++)
         {
             // The next cells x and y coordinates
@@ -153,34 +160,49 @@ public class SpringerProblemet
             int newY = y + dY[i];
 
             // Check for bounderies and if the next cell is available
-            if (newX >= 0 && newX < n && newY >= 0 && newY < n && board[newY][newX] == 0)
-            {
-                int availableSteps = getCellAvailableSteps(newX, newY);
-                if (availableSteps < nextCell[2] && availableSteps > 0)
-                {
-                    // New cell has the least available steps
-                    nextCell[0] = newX;
-                    nextCell[1] = newY;
-                    nextCell[2] = availableSteps;
-                }
+            if (newX >= 0 && newX < n && newY >= 0 && newY < n && board[newY][newX] == 0) {
+                cellsAvailableCount[i] = getCellAvailableSteps(newX, newY);
             }
         }
 
-        // What happens if it doesn't find any?
-        // If the availableSteps count is 9 it means there isn't any available moves
-        if (nextCell[2] == 9) {
-            System.out.println("ERROR: Shouldn't be able to get here?");
-            return false;
+        // For finding the smallest count 8 times
+        // NOTE: Could be better to create a Cell class and make it comparable so I can use Arrays.sort on the array. Think it will be faster
+        for (int i = 0; i < 8; i++)
+        {
+            int smallestCount = 9;
+            int smallestCountIndex = 0;
+            for (int j = 0; j < 8; j++) {
+                if (cellsAvailableCount[j] < smallestCount && cellsAvailableCount[j] != 0)
+                {
+                    smallestCountIndex = j;
+                    smallestCount = cellsAvailableCount[j];
+                }
+            }
+
+            // TODO: Can smallest count ever end up as 9?
+
+            if (cellsAvailableCount[smallestCountIndex] == 0)
+                return false;
+
+            int newX = x + dX[smallestCountIndex];
+            int newY = y + dY[smallestCountIndex];
+
+            // Found the smallest cell. Time to recursivly go into it?
+            if (warnsdorf(newX, newY))
+                return true;
         }
 
-        return warnsdorf(nextCell[0], nextCell[1]);
+        // Couldn't find any next steps
+        board[y][x] = 0;
+        stepCount--;
+        return false;
     }
 
     /* Function to help printing out the board in a pretty way */
     public void printBoard()
     {
         // Find the printing offset for numbers to align them properly
-        int offset = String.valueOf(n * n - 1).length();
+        int offset = String.valueOf(n * n).length();
 
         for (int y = 0; y < n; y++) {
             for (int x = 0; x < n; x++) {
