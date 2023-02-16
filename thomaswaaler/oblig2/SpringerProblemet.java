@@ -1,4 +1,11 @@
+/**
+ * Author: Thomas Waaler
+ * Class:  ITF20006-1 23V Algoritmer og datastrukturer
+ * Task:   Obligatorisk oppgave 2: Springerproblemet
+ **/
+
 import java.util.Scanner;
+import java.util.Arrays;
 
 public class SpringerProblemet
 {
@@ -7,10 +14,8 @@ public class SpringerProblemet
     int stepCount;
 
     // Possible moves in x and y directions
-    //int dX[] = { -2, -1, 1, 2, 2, 1, -1, -2 };
-    //int dY[] = { -1, -2, -2, -1, 1, 2, 2, 1 };
-    int dX[] = { -1,  1,  2,  2,  1, -1, -2, -2 };
-    int dY[] = { -2, -2, -1,  1,  2,  2,  1, -1 };
+    int dX[] = { -2, -1, 1, 2, 2, 1, -1, -2 };
+    int dY[] = { -1, -2, -2, -1, 1, 2, 2, 1 };
 
     public SpringerProblemet()
     {
@@ -20,12 +25,17 @@ public class SpringerProblemet
 
         System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
         System.out.println("              Knight's Tour Solver               ");
-        System.out.println("               By Thomas Waaler                  ");
+        System.out.println("                By Thomas Waaler                 ");
         System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 
         // Gather parameters from the user
         System.out.print("How wide is the board? ");
         n = s.nextInt();
+        if (n <= 0) {
+            System.err.println("ERROR: Board width cannot be a negative number or 0");
+            System.exit(-1);
+        }
+
         board = new int[n][n];
 
         System.out.print("Start position X? (1 to " + n + ") ");
@@ -55,6 +65,7 @@ public class SpringerProblemet
                 // Don't allow an n that is higher than 7
                 if (n >= 8) {
                     System.out.println("Can't solve for boards bigger than 7x7");
+                    s.close();
                     System.exit(-1);
                 }
 
@@ -72,7 +83,7 @@ public class SpringerProblemet
                 if (warnsdorf(startX - 1, startY - 1)) {
                     System.out.println("Found a solution!");
 
-                    if (n <= 20)
+                    if (n <= 30)
                         printBoard();
                     else {
                         // TODO: Print out to a file instead?
@@ -83,7 +94,8 @@ public class SpringerProblemet
             } break;
 
             default:
-                System.out.println("Number given is out of range. Need a number between 0 and 1");
+                System.out.println("Number given is out of range. Only accepts 0 and 1");
+                s.close();
                 System.exit(-1);
         }
 
@@ -123,7 +135,7 @@ public class SpringerProblemet
         return false;
     }
 
-    /** Helper function to count the available cells around a given cell */
+    /** Calculate how many available steps the cell in x,y has */
     private int getCellAvailableSteps(int x, int y)
     {
         int count = 0;
@@ -150,9 +162,10 @@ public class SpringerProblemet
         if (stepCount == n * n)
             return true;
 
-        // Populate a list with the amount of available cells it has. Index into that array
-        // corresponds with the index into dX and dY arrays
+        // Populate a list with the amount of available cells each cell has. Index into that array
+        // corresponds with the index into dX and dY arrays for positions
         int cellsAvailableCount[] = new int[8];
+        Arrays.fill(cellsAvailableCount, 9);    // 9 means the cell is not available, since 0 could be the last cell
         for (int i = 0; i < 8; i++)
         {
             // The next cells x and y coordinates
@@ -165,34 +178,34 @@ public class SpringerProblemet
             }
         }
 
-        // For finding the smallest count 8 times
-        // NOTE: Could be better to create a Cell class and make it comparable so I can use Arrays.sort on the array. Think it will be faster
+        // Find the smallest in the list cellsAvailableCount and move to that one recursivly. If returned false
+        // then go to next smallest in the list
         for (int i = 0; i < 8; i++)
         {
             int smallestCount = 9;
             int smallestCountIndex = 0;
             for (int j = 0; j < 8; j++) {
-                if (cellsAvailableCount[j] < smallestCount && cellsAvailableCount[j] != 0)
+                if (cellsAvailableCount[j] < smallestCount)
                 {
                     smallestCountIndex = j;
                     smallestCount = cellsAvailableCount[j];
                 }
             }
 
-            // TODO: Can smallest count ever end up as 9?
-
-            if (cellsAvailableCount[smallestCountIndex] == 0)
-                return false;
-
             int newX = x + dX[smallestCountIndex];
             int newY = y + dY[smallestCountIndex];
 
-            // Found the smallest cell. Time to recursivly go into it?
-            if (warnsdorf(newX, newY))
-                return true;
+            if (newX >= 0 && newX < n && newY >= 0 && newY < n && board[newY][newX] == 0) {
+                // Go to the smallest cell recursivly
+                if (warnsdorf(newX, newY))
+                    return true;
+            }
+
+            // If it was returned false, remove the smallest from the array
+            cellsAvailableCount[smallestCountIndex] = 9;
         }
 
-        // Couldn't find any next steps
+        // Couldn't find any next steps. So let's backtrack
         board[y][x] = 0;
         stepCount--;
         return false;
