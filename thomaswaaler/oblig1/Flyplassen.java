@@ -1,5 +1,3 @@
-package AlgoStrukt_Skole.thomaswaaler.oblig1;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
