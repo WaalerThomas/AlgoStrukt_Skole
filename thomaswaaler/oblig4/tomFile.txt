@@ -1,0 +1,1 @@
+This is my little text file with informasjon that isn't making much sense. I wonder how it will handle when i use apostrophy. Technically it shouldn't manage I think.
